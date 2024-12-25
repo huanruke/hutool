@@ -36,6 +36,9 @@
 	<a target="_blank" href='https://github.com/dromara/hutool'>
 		<img alt="github star" src="https://img.shields.io/github/stars/dromara/hutool.svg?style=social"/>
 	</a>
+	<a target="_blank" href='https://gitcode.com/dromara/hutool'>
+		<img src="https://gitcode.com/dromara/hutool/star/badge.svg" alt="gitcode star"/>
+	</a>
 </p>
 
 <br/>
@@ -194,16 +197,17 @@ Hutool的源码分为两个分支，功能如下：
 
 提交问题反馈请说明正在使用的JDK版本呢、Hutool版本和相关依赖库版本。
 
-- [Gitee issue](https://gitee.com/dromara/hutool/issues)
-- [Github issue](https://github.com/dromara/hutool/issues)
+- [Gitee   issue](https://gitee.com/dromara/hutool/issues)
+- [Github  issue](https://github.com/dromara/hutool/issues)
+- [Gitcode issue](https://gitcode.com/dromara/hutool/issues)
 
 ### 🧬贡献代码的步骤
 
-1. 在Gitee或者Github上fork项目到自己的repo
+1. 在Gitee、Github或Gitcode上fork项目到自己的repo
 2. 把fork过去的项目也就是你的项目clone到你的本地
 3. 修改代码（记得一定要修改v6-dev分支）
 4. commit后push到自己的库（v6-dev分支）
-5. 登录Gitee或Github在你首页可以看到一个 pull request 按钮，点击它，填写一些说明信息，然后提交即可。
+5. 登录Gitee、Github或Gitcode在你首页可以看到一个 pull request 按钮，点击它，填写一些说明信息，然后提交即可。
 6. 等待维护者合并
 
 ### 📐PR遵照的原则

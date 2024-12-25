@@ -36,6 +36,9 @@
 	<a target="_blank" href='https://github.com/dromara/hutool'>
 		<img src="https://img.shields.io/github/stars/dromara/hutool.svg?style=social" alt="github star"/>
 	</a>
+	<a target="_blank" href='https://gitcode.com/dromara/hutool'>
+		<img src="https://gitcode.com/dromara/hutool/star/badge.svg" alt="gitcode star"/>
+	</a>
 </p>
 
 <br/>
@@ -193,6 +196,7 @@ When submitting feedback, please indicate which JDK version, Hutool version, and
 
 - [Gitee issue](https://gitee.com/dromara/hutool/issues)
 - [Github issue](https://github.com/dromara/hutool/issues)
+- [Gitcode issue](https://gitcode.com/dromara/hutool/issues)
 
 ### 🧬Principles of PR(pull request)
 
