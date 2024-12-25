@@ -19,24 +19,24 @@ package org.dromara.hutool.core.cache.impl;
 import org.dromara.hutool.core.collection.iter.CopiedIter;
 
 import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * 使用{@link ReentrantLock}保护的缓存，读写都使用悲观锁完成，主要避免某些Map无法使用读写锁的问题<br>
+ * 使用{@link Lock}保护的缓存，读写都使用悲观锁完成，主要避免某些Map无法使用读写锁的问题<br>
  * 例如使用了LinkedHashMap的缓存，由于get方法也会改变Map的结构，因此读写必须加互斥锁
  *
  * @param <K> 键类型
  * @param <V> 值类型
  * @author looly
- * @since 5.7.15
  */
-public abstract class ReentrantCache<K, V> extends AbstractCache<K, V> {
+public abstract class LockedCache<K, V> extends AbstractCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * 一些特殊缓存，例如使用了LinkedHashMap的缓存，由于get方法也会改变Map的结构，导致无法使用读写锁
 	 */
-	protected final ReentrantLock lock = new ReentrantLock();
+	protected Lock lock = new ReentrantLock();
 
 	@Override
 	public void put(final K key, final V object, final long timeout) {

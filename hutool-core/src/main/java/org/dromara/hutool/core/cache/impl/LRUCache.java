@@ -20,6 +20,7 @@ import org.dromara.hutool.core.lang.mutable.Mutable;
 import org.dromara.hutool.core.map.FixedLinkedHashMap;
 
 import java.util.Iterator;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * LRU (least recently used)最近最久未使用缓存<br>
@@ -33,7 +34,7 @@ import java.util.Iterator;
  * @param <K> 键类型
  * @param <V> 值类型
  */
-public class LRUCache<K, V> extends ReentrantCache<K, V> {
+public class LRUCache<K, V> extends LockedCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -65,6 +66,7 @@ public class LRUCache<K, V> extends ReentrantCache<K, V> {
 				listener.onRemove(entry.getKey().get(), entry.getValue().getValue());
 			}
 		});
+		lock = new ReentrantLock();
 		cacheMap = fixedLinkedHashMap;
 	}
 

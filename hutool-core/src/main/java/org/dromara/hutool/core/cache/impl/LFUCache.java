@@ -16,8 +16,10 @@
 
 package org.dromara.hutool.core.cache.impl;
 
-import java.util.HashMap;
+import org.dromara.hutool.core.thread.lock.NoLock;
+
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * LFU(least frequently used) 最少使用率缓存<br>
@@ -31,7 +33,7 @@ import java.util.Iterator;
  * @param <K> 键类型
  * @param <V> 值类型
  */
-public class LFUCache<K, V> extends StampedCache<K, V> {
+public class LFUCache<K, V> extends LockedCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -56,7 +58,10 @@ public class LFUCache<K, V> extends StampedCache<K, V> {
 
 		this.capacity = capacity;
 		this.timeout = timeout;
-		cacheMap = new HashMap<>(capacity + 1, 1.0f);
+		//lock = new ReentrantLock();
+		//cacheMap = new HashMap<>(capacity + 1, 1.0f);
+		lock = NoLock.INSTANCE;
+		cacheMap = new ConcurrentHashMap<>(capacity + 1, 1.0f);
 	}
 
 	// ---------------------------------------------------------------- prune

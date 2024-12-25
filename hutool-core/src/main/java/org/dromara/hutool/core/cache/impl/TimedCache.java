@@ -19,9 +19,15 @@ package org.dromara.hutool.core.cache.impl;
 import org.dromara.hutool.core.cache.GlobalPruneTimer;
 import org.dromara.hutool.core.lang.Assert;
 import org.dromara.hutool.core.lang.mutable.Mutable;
+import org.dromara.hutool.core.thread.lock.NoLock;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 定时缓存<br>
@@ -33,7 +39,7 @@ import java.util.concurrent.ScheduledFuture;
  * @param <K> 键类型
  * @param <V> 值类型
  */
-public class TimedCache<K, V> extends StampedCache<K, V> {
+public class TimedCache<K, V> extends LockedCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/** 正在执行的定时任务 */
@@ -57,6 +63,8 @@ public class TimedCache<K, V> extends StampedCache<K, V> {
 	public TimedCache(final long timeout, final Map<Mutable<K>, CacheObj<K, V>> map) {
 		this.capacity = 0;
 		this.timeout = timeout;
+		// 如果使用线程安全的Map，则不加锁，否则默认使用ReentrantLock
+		this.lock = map instanceof ConcurrentMap ? NoLock.INSTANCE : new ReentrantLock();
 		this.cacheMap = Assert.isNotInstanceOf(LinkedHashMap.class, map);
 	}
 

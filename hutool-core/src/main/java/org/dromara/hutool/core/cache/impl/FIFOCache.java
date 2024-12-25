@@ -34,7 +34,7 @@ import java.util.LinkedHashMap;
  * @param <V> 值类型
  * @author Looly
  */
-public class FIFOCache<K, V> extends ReentrantCache<K, V> {
+public class FIFOCache<K, V> extends LockedCache<K, V> {
 	private static final long serialVersionUID = 1L;
 
 	/**
@@ -55,7 +55,7 @@ public class FIFOCache<K, V> extends ReentrantCache<K, V> {
 	public FIFOCache(final int capacity, final long timeout) {
 		this.capacity = capacity;
 		this.timeout = timeout;
-		cacheMap = new LinkedHashMap<>(capacity + 1, 1.0f, false);
+		this.cacheMap = new LinkedHashMap<>(capacity + 1, 1.0f, false);
 	}
 
 	/**

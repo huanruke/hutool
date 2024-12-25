@@ -43,6 +43,7 @@
 		<jetty.version>9.4.56.v20240826</jetty.version>
 		<!-- 固定 9.x支持到JDK8 -->
 		<tomcat.version>9.0.97</tomcat.version>
+		<smartboot.version>1.4.3</smartboot.version>
 	</properties>
 
 	<dependencies>
@@ -129,6 +130,12 @@
 			<groupId>org.apache.tomcat.embed</groupId>
 			<artifactId>tomcat-embed-core</artifactId>
 			<version>${tomcat.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.smartboot.http</groupId>
+			<artifactId>smart-http-server</artifactId>
+			<version>${smartboot.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

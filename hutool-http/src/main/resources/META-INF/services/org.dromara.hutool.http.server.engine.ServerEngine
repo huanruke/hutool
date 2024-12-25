@@ -17,4 +17,5 @@
 org.dromara.hutool.http.server.engine.undertow.UndertowEngine
 org.dromara.hutool.http.server.engine.tomcat.TomcatEngine
 org.dromara.hutool.http.server.engine.jetty.JettyEngine
+org.dromara.hutool.http.server.engine.smart.SmartHttpServerEngine
 org.dromara.hutool.http.server.engine.sun.SunHttpServerEngine
