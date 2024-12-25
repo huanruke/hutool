@@ -99,6 +99,7 @@ public class SmartHttpServerEngine extends AbstractServerEngine {
 			configuration.setHttpIdleTimeout((int) idleTimeout);
 		}
 
+		// 请求处理器
 		bootstrap.httpHandler(new HttpServerHandler() {
 			@Override
 			public void handle(final HttpRequest request, final HttpResponse response) {

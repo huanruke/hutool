@@ -99,7 +99,7 @@ public class TomcatEngine extends AbstractServerEngine {
 	}
 
 	/**
-	 * 创建Connector
+	 * 创建Connector，包括SSL配置
 	 *
 	 * @return Connector
 	 */

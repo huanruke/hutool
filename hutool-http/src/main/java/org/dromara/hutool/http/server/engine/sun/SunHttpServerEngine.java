@@ -32,6 +32,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 基于Sun HttpServer的HTTP服务器引擎实现
@@ -116,7 +117,7 @@ public class SunHttpServerEngine extends AbstractServerEngine {
 		path = StrUtil.addPrefixIfNot(path, StrUtil.SLASH);
 		final HttpContext context = this.server.createContext(path, handler);
 		// 增加整体过滤器
-		if(CollUtil.isNotEmpty(this.filters)){
+		if (CollUtil.isNotEmpty(this.filters)) {
 			context.getFilters().addAll(this.filters);
 		}
 		return context;
@@ -144,6 +145,8 @@ public class SunHttpServerEngine extends AbstractServerEngine {
 	@Override
 	protected void initEngine() {
 		final ServerConfig config = this.config;
+
+		// SSL
 		final InetSocketAddress address = new InetSocketAddress(config.getHost(), config.getPort());
 		final SSLContext sslContext = config.getSslContext();
 		try {
@@ -158,25 +161,37 @@ public class SunHttpServerEngine extends AbstractServerEngine {
 			throw new IORuntimeException(e);
 		}
 
-		// 线程池
-		final int coreThreads = config.getCoreThreads();
-		final ExecutorBuilder executorBuilder = ExecutorBuilder.of();
-		if(coreThreads > 0){
-			executorBuilder.setCorePoolSize(coreThreads);
-		}
-		final int maxThreads = config.getMaxThreads();
-		if(maxThreads > 0){
-			executorBuilder.setMaxPoolSize(maxThreads);
-		}
-		final long idleTimeout = config.getIdleTimeout();
-		if(idleTimeout > 0){
-			executorBuilder.setKeepAliveTime(idleTimeout);
-		}
+		// 线程池和连接配置
+		setExecutor(createExecutor(config));
 
-		setExecutor(executorBuilder.build());
-		createContext("/", exchange -> SunHttpServerEngine.this.handler.handle(
+		// 请求处理器
+		createContext("/", exchange -> handler.handle(
 			new SunServerRequest(exchange),
 			new SunServerResponse(exchange)
 		));
+	}
+
+	/**
+	 * 创建线程池
+	 *
+	 * @param config {@link ServerConfig}
+	 * @return {@link ThreadPoolExecutor}
+	 */
+	private static ThreadPoolExecutor createExecutor(final ServerConfig config) {
+		final ExecutorBuilder executorBuilder = ExecutorBuilder.of();
+		// 线程池
+		final int coreThreads = config.getCoreThreads();
+		if (coreThreads > 0) {
+			executorBuilder.setCorePoolSize(coreThreads);
+		}
+		final int maxThreads = config.getMaxThreads();
+		if (maxThreads > 0) {
+			executorBuilder.setMaxPoolSize(maxThreads);
+		}
+		final long idleTimeout = config.getIdleTimeout();
+		if (idleTimeout > 0) {
+			executorBuilder.setKeepAliveTime(idleTimeout);
+		}
+		return executorBuilder.build();
 	}
 }

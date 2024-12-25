@@ -66,14 +66,9 @@ public class UndertowEngine extends AbstractServerEngine {
 		if (null != this.undertow) {
 			return;
 		}
-		final Undertow.Builder builder = Undertow.builder()
-			.setHandler(exchange -> {
-				this.handler.handle(
-					new UndertowRequest(exchange),
-					new UndertowResponse(exchange));
-			});
-
+		final Undertow.Builder builder = Undertow.builder();
 		final ServerConfig config = this.config;
+
 		// 选项
 		final int maxHeaderSize = config.getMaxHeaderSize();
 		if(maxHeaderSize > 0){
@@ -96,6 +91,7 @@ public class UndertowEngine extends AbstractServerEngine {
 			builder.setWorkerThreads(maxThreads);
 		}
 
+		// SSL配置
 		final SSLContext sslContext = config.getSslContext();
 		if(null != sslContext){
 			builder.addHttpsListener(config.getPort(), config.getHost(), sslContext);
@@ -103,6 +99,12 @@ public class UndertowEngine extends AbstractServerEngine {
 			builder.addHttpListener(config.getPort(), config.getHost());
 		}
 
+		// 请求处理器
+		builder.setHandler(exchange -> {
+			this.handler.handle(
+				new UndertowRequest(exchange),
+				new UndertowResponse(exchange));
+		});
 		this.undertow = builder.build();
 	}
 }
