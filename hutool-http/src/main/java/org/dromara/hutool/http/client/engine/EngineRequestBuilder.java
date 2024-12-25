@@ -19,7 +19,7 @@ package org.dromara.hutool.http.client.engine;
 import org.dromara.hutool.http.client.Request;
 
 /**
- * 引擎的请求对象构建器<br》
+ * 引擎的请求对象构建器<br>
  * 用于将{@link Request}转换为引擎对应的请求对象
  *
  * @param <T> 引擎请求对象类型
