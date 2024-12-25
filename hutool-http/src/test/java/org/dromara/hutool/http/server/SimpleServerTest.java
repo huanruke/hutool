@@ -23,7 +23,6 @@ import org.dromara.hutool.http.HttpUtil;
 import org.dromara.hutool.http.meta.ContentType;
 import org.dromara.hutool.http.meta.HeaderName;
 import org.dromara.hutool.http.multipart.UploadFile;
-import org.dromara.hutool.http.server.engine.sun.SunServerRequest;
 import org.dromara.hutool.json.JSONUtil;
 
 import java.net.HttpCookie;
@@ -40,7 +39,7 @@ public class SimpleServerTest {
 			.setRoot(FileUtil.file("html"))
 			// get数据测试，返回请求的PATH
 			.addAction("/get", (request, response) ->
-				response.write(((SunServerRequest)request).getURI().toString(), ContentType.TEXT_PLAIN.toString())
+				response.write(request.getPath(), ContentType.TEXT_PLAIN.toString())
 			)
 			// 返回JSON数据测试
 			.addAction("/restTest", (request, response) -> {

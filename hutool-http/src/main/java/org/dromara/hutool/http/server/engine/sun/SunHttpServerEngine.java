@@ -140,35 +140,45 @@ public class SunHttpServerEngine extends AbstractServerEngine {
 			this.server.stop(0);
 			this.server = null;
 		}
+		this.server = createServer(this.config);
 	}
 
 	@Override
 	protected void initEngine() {
-		final ServerConfig config = this.config;
+		// 请求处理器
+		createContext("/", exchange -> handler.handle(
+			new SunServerRequest(exchange),
+			new SunServerResponse(exchange)
+		));
+	}
 
+	/**
+	 * 创建{@link HttpServer}
+	 *
+	 * @param config {@link ServerConfig}
+	 * @return {@link HttpServer}
+	 */
+	private static HttpServer createServer(final ServerConfig config){
+		final HttpServer server;
 		// SSL
 		final InetSocketAddress address = new InetSocketAddress(config.getHost(), config.getPort());
 		final SSLContext sslContext = config.getSslContext();
 		try {
 			if (null != sslContext) {
-				final HttpsServer server = HttpsServer.create(address, 0);
-				server.setHttpsConfigurator(new HttpsConfigurator(sslContext));
-				this.server = server;
+				final HttpsServer httpsServer = HttpsServer.create(address, 0);
+				httpsServer.setHttpsConfigurator(new HttpsConfigurator(sslContext));
+				server = httpsServer;
 			} else {
-				this.server = HttpServer.create(address, 0);
+				server = HttpServer.create(address, 0);
 			}
 		} catch (final IOException e) {
 			throw new IORuntimeException(e);
 		}
 
 		// 线程池和连接配置
-		setExecutor(createExecutor(config));
+		server.setExecutor(createExecutor(config));
 
-		// 请求处理器
-		createContext("/", exchange -> handler.handle(
-			new SunServerRequest(exchange),
-			new SunServerResponse(exchange)
-		));
+		return server;
 	}
 
 	/**

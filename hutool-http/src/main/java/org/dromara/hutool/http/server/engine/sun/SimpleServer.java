@@ -82,6 +82,7 @@ public class SimpleServer {
 			.setPort(address.getPort())
 			.setSslContext(sslContext);
 		this.engine.init(serverConfig);
+		this.engine.initEngine();
 	}
 
 	/**

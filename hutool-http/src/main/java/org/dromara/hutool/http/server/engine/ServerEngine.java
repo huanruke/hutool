@@ -20,7 +20,10 @@ import org.dromara.hutool.http.server.ServerConfig;
 import org.dromara.hutool.http.server.handler.HttpHandler;
 
 /**
- * HTTP服务器引擎
+ * HTTP服务器引擎，执行流程为：
+ * <pre>{@code
+ *    init -> setHandler -> start
+ * }</pre>
  *
  * @author looly
  * @since 6.0.0
