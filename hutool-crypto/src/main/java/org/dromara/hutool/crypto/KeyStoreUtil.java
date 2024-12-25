@@ -107,10 +107,10 @@ public class KeyStoreUtil {
 	 * 读取KeyStore文件<br>
 	 * KeyStore文件用于数字证书的密钥对保存<br>
 	 * 证书类型根据扩展名自动判断，规则如下：
-	 * <pre>
+	 * <pre>{@code
 	 *     .jks .keystore -> JKS
 	 *      .p12 .pfx等其它 -> PKCS12
-	 * </pre>
+	 * }</pre>
 	 *
 	 * @param keyFile  证书文件
 	 * @param password 密码，null表示无密码
