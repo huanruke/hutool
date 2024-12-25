@@ -305,7 +305,10 @@
 						<extensions>true</extensions>
 						<configuration>
 							<publishingServerId>central</publishingServerId>
+							<!-- 自动发布 -->
 							<autoPublish>true</autoPublish>
+							<!-- 等待发布 -->
+							<waitUntil>published</waitUntil>
 						</configuration>
 					</plugin>
 				</plugins>
