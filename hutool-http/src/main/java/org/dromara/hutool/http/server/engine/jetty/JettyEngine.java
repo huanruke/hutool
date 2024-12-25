@@ -123,28 +123,18 @@ public class JettyEngine extends AbstractServerEngine {
 	 * @return 连接器
 	 */
 	private ServerConnector createConnector(final Server server) {
-		final ServerConnector connector;
 		final ServerConfig config = this.config;
+		final ServerConnector connector;
 
-		// 配置
-		final HttpConfiguration configuration = new HttpConfiguration();
-		final int maxHeaderSize = config.getMaxHeaderSize();
-		if(maxHeaderSize > 0){
-			configuration.setRequestHeaderSize(maxHeaderSize);
-		}
-
-		final HttpConnectionFactory httpFactory = new HttpConnectionFactory(configuration);
+		final HttpConnectionFactory connectionFactory = createHttpConnectionFactory(config);
 
 		final SSLContext sslContext = config.getSslContext();
 		if (null != sslContext) {
-			// 创建HTTPS连接器
-			final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
-			sslContextFactory.setSslContext(sslContext);
-			final SslConnectionFactory connectionFactory = new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
-			connector = new ServerConnector(server, connectionFactory, httpFactory);
+			final SslConnectionFactory sslConnectionFactory = createSslConnectionFactory(sslContext);
+			connector = new ServerConnector(server, sslConnectionFactory, connectionFactory);
 		} else {
 			// 创建HTTP连接器
-			connector = new ServerConnector(server, httpFactory);
+			connector = new ServerConnector(server, connectionFactory);
 		}
 
 		final long idleTimeout = config.getIdleTimeout();
@@ -155,5 +145,32 @@ public class JettyEngine extends AbstractServerEngine {
 		connector.setPort(config.getPort());
 
 		return connector;
+	}
+
+	/**
+	 * 创建HTTP连接工厂
+	 *
+	 * @param config 配置
+	 * @return 连接工厂
+	 */
+	private static HttpConnectionFactory createHttpConnectionFactory(final ServerConfig config) {
+		final HttpConfiguration configuration = new HttpConfiguration();
+		final int maxHeaderSize = config.getMaxHeaderSize();
+		if(maxHeaderSize > 0){
+			configuration.setRequestHeaderSize(maxHeaderSize);
+		}
+		return new HttpConnectionFactory(configuration);
+	}
+
+	/**
+	 * 创建SSL连接工厂
+	 *
+	 * @param sslContext SSL上下文
+	 * @return 连接工厂
+	 */
+	private static SslConnectionFactory createSslConnectionFactory(final SSLContext sslContext) {
+		final SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
+		sslContextFactory.setSslContext(sslContext);
+		return new SslConnectionFactory(sslContextFactory, HttpVersion.HTTP_1_1.asString());
 	}
 }
