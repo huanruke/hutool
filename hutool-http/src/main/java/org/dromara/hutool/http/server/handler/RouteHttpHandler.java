@@ -27,6 +27,16 @@ import org.dromara.hutool.core.lang.Assert;
  */
 public class RouteHttpHandler implements HttpHandler {
 
+	/**
+	 * 创建路由处理器
+	 *
+	 * @param defaultHandler 默认处理器
+	 * @return {@code RouteHttpHandler}
+	 */
+	public static RouteHttpHandler of(final HttpHandler defaultHandler) {
+		return new RouteHttpHandler(defaultHandler);
+	}
+
 	private final PathTrie pathTrie;
 	private final HttpHandler defaultHandler;
 

@@ -21,12 +21,13 @@ import org.dromara.hutool.core.lang.Console;
 import org.dromara.hutool.core.net.ssl.SSLContextUtil;
 import org.dromara.hutool.crypto.KeyStoreUtil;
 import org.dromara.hutool.http.server.ServerConfig;
+import org.dromara.hutool.http.server.handler.RouteHttpHandler;
 
 import javax.net.ssl.SSLContext;
 import java.security.KeyStore;
 
 public class UndertowTest {
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		final char[] pwd = "123456".toCharArray();
 		final KeyStore keyStore = KeyStoreUtil.readJKSKeyStore(FileUtil.file("d:/test/keystore.jks"), pwd);
 		// 初始化SSLContext
@@ -34,10 +35,16 @@ public class UndertowTest {
 
 		final ServerEngine engine = ServerEngineFactory.createEngine("undertow");
 		engine.init(ServerConfig.of().setSslContext(sslContext));
-		engine.setHandler((request, response) -> {
+
+		// 自定义路由策略
+		engine.setHandler(RouteHttpHandler.of((request, response) -> {
 			Console.log(request.getPath());
 			response.write("Hutool Undertow response test");
-		});
+		}).route("/test", (request, response) -> {
+			Console.log(request.getPath());
+			response.write("test path");
+		}));
+
 		engine.start();
 	}
 }
