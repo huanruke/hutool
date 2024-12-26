@@ -16,19 +16,23 @@
 
 package org.dromara.hutool.core.map;
 
-import org.dromara.hutool.core.convert.ConvertUtil;
-import org.dromara.hutool.core.lang.Opt;
-import org.dromara.hutool.core.text.StrUtil;
 import lombok.Builder;
 import lombok.Data;
+import org.dromara.hutool.core.convert.ConvertUtil;
+import org.dromara.hutool.core.lang.Opt;
+import org.dromara.hutool.core.reflect.TypeReference;
+import org.dromara.hutool.core.text.StrUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MapUtilTest {
 
@@ -229,15 +233,6 @@ public class MapUtilTest {
 	}
 
 	@Test
-	void getIntTest() {
-		Assertions.assertThrows(NumberFormatException.class, () -> {
-			final Map<String, String> map = MapUtil.ofEntries(MapUtil.entry("a", "d"));
-			final Integer a = MapUtil.getInt(map, "a");
-			Assertions.assertNotNull(a);
-		});
-	}
-
-	@Test
 	void getIntValueTest() {
 		final Map<String, String> map = MapUtil.ofEntries(MapUtil.entry("a", "1"), MapUtil.entry("b", null));
 		final int a = MapUtil.get(map, "a", int.class);
@@ -265,13 +260,6 @@ public class MapUtilTest {
 	}
 
 	@Test
-	void joinIgnoreNullTest() {
-		final Dict v1 = Dict.of().set("id", 12).set("name", "张三").set("age", null);
-		final String s = MapUtil.joinIgnoreNull(v1, ",", "=");
-		Assertions.assertEquals("id=12,name=张三", s);
-	}
-
-	@Test
 	void computeIfAbsentForJdk8Test() {
 		// https://github.com/apache/dubbo/issues/11986
 		final ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
@@ -290,17 +278,89 @@ public class MapUtilTest {
 	}
 
 	@Test
-	public void renameKeyTest() {
-		final Dict v1 = Dict.of().set("id", 12).set("name", "张三").set("age", null);
-		final Map<String, Object> map = MapUtil.renameKey(v1, "name", "newName");
-		Assertions.assertEquals("张三", map.get("newName"));
-	}
-
-	@Test
 	public void removeNullValueTest() {
 		final Dict v1 = Dict.of().set("id", 12).set("name", null).set("age", null);
 		final Map<String, Object> map = MapUtil.removeNullValue(v1);
 		Assertions.assertEquals(1, map.size());
+	}
+
+	@Test
+	public void ofKvsLinkTest() {
+		final Map<String, Long> map2 = MapUtil.ofKvs(true,
+			"RED", 0xFF0000,
+			"GREEN", 0x00FF00,
+			"BLUE", 0x0000FF);
+		Assertions.assertEquals(3, map2.size());
+		Assertions.assertEquals(LinkedHashMap.class, map2.getClass());
+	}
+
+	@Test
+	public void ofEntriesSimpleEntryTest() {
+		final Map<String, Integer> map = MapUtil.ofEntries(
+			MapUtil.entry("a", 1, false),
+			MapUtil.entry("b", 2, false)
+		);
+		assertEquals(2, map.size());
+
+		assertEquals(Integer.valueOf(1), map.get("a"));
+		assertEquals(Integer.valueOf(2), map.get("b"));
+	}
+
+	@Test
+	public void getIntTest() {
+		assertThrows(NumberFormatException.class, () -> {
+			final HashMap<String, String> map = MapUtil.of("age", "d");
+			final Integer age = MapUtil.getInt(map, "age");
+			assertNotNull(age);
+		});
+	}
+
+	@Test
+	public void joinIgnoreNullTest() {
+		final Dict v1 = Dict.of().set("id", 12).set("name", "张三").set("age", null);
+		final String s = MapUtil.joinIgnoreNull(v1, ",", "=");
+		assertEquals("id=12,name=张三", s);
+	}
+
+	@Test
+	public void renameKeyTest() {
+		final Dict v1 = Dict.of().set("id", 12).set("name", "张三").set("age", null);
+		final Map<String, Object> map = MapUtil.renameKey(v1, "name", "newName");
+		assertEquals("张三", map.get("newName"));
+	}
+
+	@Test
+	public void renameKeyMapEmptyNoChange() {
+		final Map<String, String> map = new HashMap<>();
+		final Map<String, String> result = MapUtil.renameKey(map, "oldKey", "newKey");
+		assertTrue(result.isEmpty());
+	}
+
+	@Test
+	public void renameKeyOldKeyNotPresentNoChange() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("anotherKey", "value");
+		final Map<String, String> result = MapUtil.renameKey(map, "oldKey", "newKey");
+		assertEquals(1, result.size());
+		assertEquals("value", result.get("anotherKey"));
+	}
+
+	@Test
+	public void renameKeyOldKeyPresentNewKeyNotPresentKeyRenamed() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("oldKey", "value");
+		final Map<String, String> result = MapUtil.renameKey(map, "oldKey", "newKey");
+		assertEquals(1, result.size());
+		assertEquals("value", result.get("newKey"));
+	}
+
+	@Test
+	public void renameKeyNewKeyPresentThrowsException() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("oldKey", "value");
+		map.put("newKey", "existingValue");
+		assertThrows(IllegalArgumentException.class, () ->
+			MapUtil.renameKey(map, "oldKey", "newKey"));
 	}
 
 	@Test
@@ -315,18 +375,567 @@ public class MapUtilTest {
 			}
 		};
 		final Map<String, Object> filtered = MapUtil.filter(map, "a", "b");
-		Assertions.assertEquals(2, filtered.size());
-		Assertions.assertEquals("1", filtered.get("a"));
-		Assertions.assertEquals("2", filtered.get("b"));
+		assertEquals(2, filtered.size());
+		assertEquals("1", filtered.get("a"));
+		assertEquals("2", filtered.get("b"));
+	}
+
+
+	@Test
+	public void partitionNullMapThrowsException() {
+		assertThrows(IllegalArgumentException.class, () -> MapUtil.partition(null, 2));
 	}
 
 	@Test
-	public void ofKvsLinkTest() {
-		final Map<String, Long> map2 = MapUtil.ofKvs(true,
-			"RED", 0xFF0000,
-			"GREEN", 0x00FF00,
-			"BLUE", 0x0000FF);
-		Assertions.assertEquals(3, map2.size());
-		Assertions.assertEquals(LinkedHashMap.class, map2.getClass());
+	public void partitionSizeZeroThrowsException() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		assertThrows(IllegalArgumentException.class, () -> MapUtil.partition(map, 0));
+	}
+
+	@Test
+	public void partitionSizeNegativeThrowsException() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		assertThrows(IllegalArgumentException.class, () -> MapUtil.partition(map, -1));
+	}
+
+	@Test
+	public void partitionEmptyMapReturnsEmptyList() {
+		final Map<String, String> map = new HashMap<>();
+		final List<Map<String, String>> result = MapUtil.partition(map, 2);
+		assertTrue(result.isEmpty());
+	}
+
+	@Test
+	public void partitionMapSizeMultipleOfSizePartitionsCorrectly() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		map.put("d", "4");
+
+		final List<Map<String, String>> result = MapUtil.partition(map, 2);
+
+		assertEquals(2, result.size());
+		assertEquals(2, result.get(0).size());
+		assertEquals(2, result.get(1).size());
+	}
+
+	@Test
+	public void partitionMapSizeNotMultipleOfSizePartitionsCorrectly() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		map.put("d", "4");
+		map.put("e", "5");
+
+		final List<Map<String, String>> result = MapUtil.partition(map, 2);
+
+		assertEquals(3, result.size());
+		assertEquals(2, result.get(0).size());
+		assertEquals(2, result.get(1).size());
+		assertEquals(1, result.get(2).size());
+	}
+
+	@Test
+	public void partitionGeneralCasePartitionsCorrectly() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		map.put("d", "4");
+		map.put("e", "5");
+		map.put("f", "6");
+
+		final List<Map<String, String>> result = MapUtil.partition(map, 3);
+
+		assertEquals(2, result.size());
+		assertEquals(3, result.get(0).size());
+		assertEquals(3, result.get(1).size());
+	}
+
+
+	// ---------MapUtil.computeIfAbsentForJdk8
+	@Test
+	public void computeIfAbsentForJdk8KeyExistsReturnsExistingValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		map.put("key", 10);
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(10, result);
+	}
+
+	@Test
+	public void computeIfAbsentForJdk8KeyDoesNotExistComputesAndInsertsValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(20, result);
+		assertEquals(20, map.get("key"));
+	}
+
+	@Test
+	public void computeIfAbsentForJdk8ConcurrentInsertReturnsOldValue() {
+		final ConcurrentHashMap<String, Integer> concurrentMap = new ConcurrentHashMap<>();
+		concurrentMap.put("key", 30);
+		final AtomicInteger counter = new AtomicInteger(0);
+
+		// 模拟并发插入
+		concurrentMap.computeIfAbsent("key", k -> {
+			counter.incrementAndGet();
+			return 40;
+		});
+
+		final Integer result = MapUtil.computeIfAbsentForJdk8(concurrentMap, "key", k -> 50);
+		assertEquals(30, result);
+		assertEquals(30, concurrentMap.get("key"));
+		assertEquals(0, counter.get());
+	}
+
+	@Test
+	public void computeIfAbsentForJdk8NullValueComputesAndInsertsValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		map.put("key", null);
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(20, result);
+		assertEquals(20, map.get("key"));
+	}
+
+	//--------MapUtil.computeIfAbsent
+	@Test
+	public void computeIfAbsentKeyExistsReturnsExistingValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		map.put("key", 10);
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(10, result);
+	}
+
+	@Test
+	public void computeIfAbsentKeyDoesNotExistComputesAndInsertsValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(20, result);
+		assertEquals(20, map.get("key"));
+	}
+
+	@Test
+	public void computeIfAbsentConcurrentInsertReturnsOldValue() {
+		final ConcurrentHashMap<String, Integer> concurrentMap = new ConcurrentHashMap<>();
+		concurrentMap.put("key", 30);
+		final AtomicInteger counter = new AtomicInteger(0);
+
+		// 模拟并发插入
+		concurrentMap.computeIfAbsent("key", k -> {
+			counter.incrementAndGet();
+			return 40;
+		});
+
+		final Integer result = MapUtil.computeIfAbsentForJdk8(concurrentMap, "key", k -> 50);
+		assertEquals(30, result);
+		assertEquals(30, concurrentMap.get("key"));
+		assertEquals(0, counter.get());
+	}
+
+	@Test
+	public void computeIfAbsentNullValueComputesAndInsertsValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		map.put("key", null);
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(20, result);
+		assertEquals(20, map.get("key"));
+	}
+
+	@Test
+	public void computeIfAbsentEmptyMapInsertsValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "newKey", k -> 100);
+		assertEquals(100, result);
+		assertEquals(100, map.get("newKey"));
+	}
+
+	@Test
+	public void computeIfAbsentJdk8KeyExistsReturnsExistingValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		// 假设JdkUtil.ISJDK8为true
+		map.put("key", 10);
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(10, result);
+	}
+
+	@Test
+	public void computeIfAbsentJdk8KeyDoesNotExistComputesAndInsertsValue() {
+		final Map<String, Integer> map = new HashMap<>();
+		// 假设JdkUtil.ISJDK8为true
+		final Integer result = MapUtil.computeIfAbsentForJdk8(map, "key", k -> 20);
+		assertEquals(20, result);
+		assertEquals(20, map.get("key"));
+	}
+
+
+	//----------valuesOfKeys
+	@Test
+	public void valuesOfKeysEmptyIteratorReturnsEmptyList() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		final Iterator<String> emptyIterator = Collections.emptyIterator();
+		final ArrayList<String> result = MapUtil.valuesOfKeys(map, emptyIterator);
+		assertEquals(new ArrayList<String>(), result);
+	}
+
+	@Test
+	public void valuesOfKeysNonEmptyIteratorReturnsValuesList() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		final Iterator<String> iterator = new ArrayList<String>() {
+			private static final long serialVersionUID = -4593258366224032110L;
+
+			{
+				add("a");
+				add("b");
+			}
+		}.iterator();
+		final ArrayList<String> result = MapUtil.valuesOfKeys(map, iterator);
+		assertEquals(new ArrayList<String>() {
+			private static final long serialVersionUID = 7218152799308667271L;
+
+			{
+				add("1");
+				add("2");
+			}
+		}, result);
+	}
+
+	@Test
+	public void valuesOfKeysKeysNotInMapReturnsNulls() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		final Iterator<String> iterator = new ArrayList<String>() {
+			private static final long serialVersionUID = -5479427021989481058L;
+
+			{
+				add("d");
+				add("e");
+			}
+		}.iterator();
+		final ArrayList<String> result = MapUtil.valuesOfKeys(map, iterator);
+		assertEquals(new ArrayList<String>() {
+			private static final long serialVersionUID = 4390715387901549136L;
+
+			{
+				add(null);
+				add(null);
+			}
+		}, result);
+	}
+
+	@Test
+	public void valuesOfKeysMixedKeysReturnsMixedValues() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("a", "1");
+		map.put("b", "2");
+		map.put("c", "3");
+		final Iterator<String> iterator = new ArrayList<String>() {
+			private static final long serialVersionUID = 8510595063492828968L;
+
+			{
+				add("a");
+				add("d");
+				add("b");
+			}
+		}.iterator();
+		final ArrayList<String> result = MapUtil.valuesOfKeys(map, iterator);
+		assertEquals(new ArrayList<String>() {
+			private static final long serialVersionUID = 6383576410597048337L;
+			{
+				add("1");
+				add(null);
+				add("2");
+			}
+		}, result);
+	}
+
+	//--------clear
+	@Test
+	public void clearNoMapsProvidedNoAction() {
+		MapUtil.clear();
+		// 预期没有异常发生，且没有Map被处理
+	}
+
+	@Test
+	public void clearEmptyMapNoChange() {
+		final Map<String, String> map = new HashMap<>();
+		MapUtil.clear(map);
+		assertTrue(map.isEmpty());
+	}
+
+	@Test
+	public void clearNonEmptyMapClearsMap() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("key", "value");
+		MapUtil.clear(map);
+		assertTrue(map.isEmpty());
+	}
+
+	@Test
+	public void clearMultipleMapsClearsNonEmptyMaps() {
+		final Map<String, String> map1 = new HashMap<>();
+		map1.put("key1", "value1");
+
+		final Map<String, String> map2 = new HashMap<>();
+		map2.put("key2", "value2");
+
+		final Map<String, String> map3 = new HashMap<>();
+
+		MapUtil.clear(map1, map2, map3);
+
+		assertTrue(map1.isEmpty());
+		assertTrue(map2.isEmpty());
+		assertTrue(map3.isEmpty());
+	}
+
+	@Test
+	public void clearMixedMapsClearsNonEmptyMaps() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("key", "value");
+
+		final Map<String, String> emptyMap = new HashMap<>();
+
+		MapUtil.clear(map, emptyMap);
+
+		assertTrue(map.isEmpty());
+		assertTrue(emptyMap.isEmpty());
+	}
+
+	//-----empty
+
+	@Test
+	public void emptyNoParametersReturnsEmptyMap() {
+		final Map<String, String> emptyMap = MapUtil.empty();
+		assertTrue(emptyMap.isEmpty(), "The map should be empty.");
+		assertSame(Collections.emptyMap(), emptyMap, "The map should be the same instance as Collections.emptyMap().");
+	}
+
+	@Test
+	public void emptyNullMapClassReturnsEmptyMap() {
+		final Map<String, String> emptyMap = MapUtil.empty(null);
+		assertTrue(emptyMap.isEmpty(), "The map should be empty.");
+		assertSame(Collections.emptyMap(), emptyMap, "The map should be the same instance as Collections.emptyMap().");
+	}
+
+	@Test
+	public void emptyNavigableMapClassReturnsEmptyNavigableMap() {
+		final Map<?, ?> map = MapUtil.empty(NavigableMap.class);
+		assertTrue(map.isEmpty());
+		assertInstanceOf(NavigableMap.class, map);
+	}
+
+	@Test
+	public void emptySortedMapClassReturnsEmptySortedMap() {
+		final Map<?, ?> map = MapUtil.empty(SortedMap.class);
+		assertTrue(map.isEmpty());
+		assertInstanceOf(SortedMap.class, map);
+	}
+
+	@Test
+	public void emptyMapClassReturnsEmptyMap() {
+		final Map<?, ?> map = MapUtil.empty(Map.class);
+		assertTrue(map.isEmpty());
+	}
+
+	@Test
+	public void emptyUnsupportedMapClassThrowsIllegalArgumentException() {
+		assertThrows(IllegalArgumentException.class, () ->
+			MapUtil.empty(TreeMap.class));
+	}
+
+	//--------removeNullValue
+	@SuppressWarnings("ConstantValue")
+	@Test
+	public void removeNullValueNullMapReturnsNull() {
+		final Map<String, String> result = MapUtil.removeNullValue(null);
+		assertNull(result);
+	}
+
+	@Test
+	public void removeNullValueEmptyMapReturnsEmptyMap() {
+		final Map<String, String> map = new HashMap<>();
+		final Map<String, String> result = MapUtil.removeNullValue(map);
+		assertEquals(0, result.size());
+	}
+
+	@Test
+	public void removeNullValueNoNullValuesReturnsSameMap() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("key1", "value1");
+		map.put("key2", "value2");
+
+		final Map<String, String> result = MapUtil.removeNullValue(map);
+
+		assertEquals(2, result.size());
+		assertEquals("value1", result.get("key1"));
+		assertEquals("value2", result.get("key2"));
+	}
+
+	@Test
+	public void removeNullValueWithNullValuesRemovesNullEntries() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("key1", "value1");
+		map.put("key2", null);
+		map.put("key3", "value3");
+
+		final Map<String, String> result = MapUtil.removeNullValue(map);
+
+		assertEquals(2, result.size());
+		assertEquals("value1", result.get("key1"));
+		assertEquals("value3", result.get("key3"));
+		assertNull(result.get("key2"));
+	}
+
+	@Test
+	public void removeNullValueAllNullValuesReturnsEmptyMap() {
+		final Map<String, String> map = new HashMap<>();
+		map.put("key1", null);
+		map.put("key2", null);
+
+		final Map<String, String> result = MapUtil.removeNullValue(map);
+
+		assertEquals(0, result.size());
+	}
+
+
+	//------getQuietly
+	@Test
+	public void getQuietlyMapIsNullReturnsDefaultValue() {
+		String result = MapUtil.getQuietly(null, "key1", new TypeReference<String>() {
+		}, "default");
+		assertEquals("default", result);
+		result = MapUtil.getQuietly(null, "key1", String.class, "default");
+		assertEquals("default", result);
+	}
+
+	@Test
+	public void getQuietlyKeyExistsReturnsConvertedValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("key1", "value1");
+		map.put("key2", 123);
+		final String result = MapUtil.getQuietly(map, "key1", new TypeReference<String>() {
+		}, "default");
+		assertEquals("value1", result);
+	}
+
+	@Test
+	public void getQuietlyKeyDoesNotExistReturnsDefaultValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("key1", "value1");
+		map.put("key2", 123);
+		final String result = MapUtil.getQuietly(map, "key3", new TypeReference<String>() {
+		}, "default");
+		assertEquals("default", result);
+	}
+
+	@Test
+	public void getQuietlyConversionFailsReturnsDefaultValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("key1", "value1");
+		map.put("key2", 123);
+		final Integer result = MapUtil.getQuietly(map, "key1", new TypeReference<Integer>() {
+		}, 0);
+		assertEquals(0, result);
+	}
+
+	@Test
+	public void getQuietlyKeyExistsWithCorrectTypeReturnsValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("key1", "value1");
+		map.put("key2", 123);
+		final Integer result = MapUtil.getQuietly(map, "key2", new TypeReference<Integer>() {
+		}, 0);
+		assertEquals(123, result);
+	}
+
+	@Test
+	public void getQuietlyKeyExistsWithNullValueReturnsDefaultValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("key1", "value1");
+		map.put("key2", 123);
+		map.put("key3", null);
+		final String result = MapUtil.getQuietly(map, "key3", new TypeReference<String>() {
+		}, "default");
+		assertEquals("default", result);
+	}
+
+	@Test
+	public void getMapIsNullReturnsDefaultValue() {
+		assertNull(MapUtil.get(null, "age", String.class));
+	}
+
+	@Test
+	public void getKeyExistsReturnsConvertedValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("age", "18");
+		map.put("name", "Hutool");
+		assertEquals("18", MapUtil.get(map, "age", String.class));
+	}
+
+	@Test
+	public void getKeyDoesNotExistReturnsDefaultValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("age", "18");
+		map.put("name", "Hutool");
+		assertEquals("default", MapUtil.get(map, "nonexistent", String.class, "default"));
+	}
+
+	@Test
+	public void getTypeConversionFailsReturnsDefaultValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("age", "18");
+		map.put("name", "Hutool");
+		assertEquals(18, MapUtil.get(map, "age", Integer.class, 0));
+	}
+
+	@Test
+	public void getQuietlyTypeConversionFailsReturnsDefaultValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("age", "18");
+		map.put("name", "Hutool");
+		assertEquals(0, MapUtil.getQuietly(map, "name", Integer.class, 0));
+	}
+
+	@Test
+	public void getTypeReferenceReturnsConvertedValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("age", "18");
+		map.put("name", "Hutool");
+		assertEquals("18", MapUtil.get(map, "age", new TypeReference<String>() {
+		}));
+	}
+
+	@Test
+	public void getTypeReferenceWithDefaultValueReturnsConvertedValue() {
+		final Map<String, Object> map = new HashMap<>();
+		map.put("age", "18");
+		map.put("name", "Hutool");
+		assertEquals("18", MapUtil.get(map, "age", new TypeReference<String>() {
+		}, "default"));
+	}
+
+	@SuppressWarnings("ConstantValue")
+	@Test
+	public void getTypeReferenceWithDefaultValueTypeConversionFailsReturnsDefaultValue() {
+		Map<String, String> map = new HashMap<>();
+		map.put("age", "18");
+		map.put("name", "Hutool");
+		assertEquals(18, MapUtil.get(map, "age", new TypeReference<Integer>() {
+		}, 0));
+
+		map = null;
+		assertEquals(0, MapUtil.get(map, "age", new TypeReference<Integer>() {
+		}, 0));
 	}
 }
