@@ -7,7 +7,6 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.StrUtil;
 import lombok.Builder;
 import lombok.Data;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -65,10 +64,10 @@ public class MapUtilTest {
 	public void mapTest() {
 		// Add test like a foreigner
 		final Map<Integer, String> adjectivesMap = MapUtil.<Integer, String>builder()
-				.put(0, "lovely")
-				.put(1, "friendly")
-				.put(2, "happily")
-				.build();
+			.put(0, "lovely")
+			.put(1, "friendly")
+			.put(2, "happily")
+			.build();
 
 		final Map<Integer, String> resultMap = MapUtil.map(adjectivesMap, (k, v) -> v + " " + PeopleEnum.values()[k].name().toLowerCase());
 
@@ -84,7 +83,7 @@ public class MapUtilTest {
 		final Map<Long, User> idUserMap = Stream.iterate(0L, i -> ++i).limit(4).map(i -> User.builder().id(i).name(customers.poll()).build()).collect(Collectors.toMap(User::getId, Function.identity()));
 		// 如你所见，它是一个map，key由分组id，value由用户ids组成，典型的多对多关系
 		final Map<Long, List<Long>> groupIdUserIdsMap = groups.stream().flatMap(group -> idUserMap.keySet().stream().map(userId -> UserGroup.builder().groupId(group.getId()).userId(userId).build()))
-				.collect(Collectors.groupingBy(UserGroup::getGroupId, Collectors.mapping(UserGroup::getUserId, Collectors.toList())));
+			.collect(Collectors.groupingBy(UserGroup::getGroupId, Collectors.mapping(UserGroup::getUserId, Collectors.toList())));
 
 		// 神奇的魔法发生了， 分组id和用户ids组成的map，竟然变成了订单编号和用户实体集合组成的map
 		final Map<Long, List<User>> groupIdUserMap = MapUtil.map(groupIdUserIdsMap, (groupId, userIds) -> userIds.stream().map(idUserMap::get).collect(Collectors.toList()));
@@ -194,11 +193,11 @@ public class MapUtilTest {
 	}
 
 	@Test
-	public void sortJoinTest(){
+	public void sortJoinTest() {
 		final Map<String, String> build = MapUtil.builder(new HashMap<String, String>())
-				.put("key1", "value1")
-				.put("key3", "value3")
-				.put("key2", "value2").build();
+			.put("key1", "value1")
+			.put("key3", "value3")
+			.put("key2", "value2").build();
 
 		final String join1 = MapUtil.sortJoin(build, StrUtil.EMPTY, StrUtil.EMPTY, false);
 		assertEquals("key1value1key2value2key3value3", join1);
@@ -211,7 +210,7 @@ public class MapUtilTest {
 	}
 
 	@Test
-	public void ofEntriesTest(){
+	public void ofEntriesTest() {
 		final Map<String, Integer> map = MapUtil.ofEntries(MapUtil.entry("a", 1), MapUtil.entry("b", 2));
 		assertEquals(2, map.size());
 
@@ -220,10 +219,10 @@ public class MapUtilTest {
 	}
 
 	@Test
-	public void ofEntriesSimpleEntryTest(){
+	public void ofEntriesSimpleEntryTest() {
 		final Map<String, Integer> map = MapUtil.ofEntries(
-			MapUtil.entry("a", 1,false),
-			MapUtil.entry("b", 2,false)
+			MapUtil.entry("a", 1, false),
+			MapUtil.entry("b", 2, false)
 		);
 		assertEquals(2, map.size());
 
@@ -232,7 +231,7 @@ public class MapUtilTest {
 	}
 
 	@Test
-	public void getIntTest(){
+	public void getIntTest() {
 		assertThrows(NumberFormatException.class, () -> {
 			final HashMap<String, String> map = MapUtil.of("age", "d");
 			final Integer age = MapUtil.getInt(map, "age");
@@ -256,13 +255,14 @@ public class MapUtilTest {
 
 	@Test
 	public void renameKeyMapEmptyNoChange() {
-		Map<String,String> map = new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		Map<String, String> result = MapUtil.renameKey(map, "oldKey", "newKey");
 		assertTrue(result.isEmpty());
 	}
+
 	@Test
 	public void renameKeyOldKeyNotPresentNoChange() {
-		Map<String,String> map = new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("anotherKey", "value");
 		Map<String, String> result = MapUtil.renameKey(map, "oldKey", "newKey");
 		assertEquals(1, result.size());
@@ -271,7 +271,7 @@ public class MapUtilTest {
 
 	@Test
 	public void renameKeyOldKeyPresentNewKeyNotPresentKeyRenamed() {
-		Map<String,String> map = new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("oldKey", "value");
 		Map<String, String> result = MapUtil.renameKey(map, "oldKey", "newKey");
 		assertEquals(1, result.size());
@@ -280,7 +280,7 @@ public class MapUtilTest {
 
 	@Test
 	public void renameKeyNewKeyPresentThrowsException() {
-		Map<String,String> map = new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("oldKey", "value");
 		map.put("newKey", "existingValue");
 		assertThrows(IllegalArgumentException.class, () -> {
@@ -292,11 +292,13 @@ public class MapUtilTest {
 	public void issue3162Test() {
 		final Map<String, Object> map = new HashMap<String, Object>() {
 			private static final long serialVersionUID = 1L;
+
 			{
-			put("a", "1");
-			put("b", "2");
-			put("c", "3");
-		}};
+				put("a", "1");
+				put("b", "2");
+				put("c", "3");
+			}
+		};
 		final Map<String, Object> filtered = MapUtil.filter(map, "a", "b");
 		assertEquals(2, filtered.size());
 		assertEquals("1", filtered.get("a"));
@@ -498,66 +500,89 @@ public class MapUtilTest {
 	//----------valuesOfKeys
 	@Test
 	public void valuesOfKeysEmptyIteratorReturnsEmptyList() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("a", "1");
 		map.put("b", "2");
 		map.put("c", "3");
-		Iterator<String> emptyIterator = new ArrayList<String>().iterator();
+		Iterator<String> emptyIterator = Collections.emptyIterator();
 		ArrayList<String> result = MapUtil.valuesOfKeys(map, emptyIterator);
 		assertEquals(new ArrayList<String>(), result);
 	}
 
 	@Test
 	public void valuesOfKeysNonEmptyIteratorReturnsValuesList() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("a", "1");
 		map.put("b", "2");
 		map.put("c", "3");
-		Iterator<String> iterator = new ArrayList<String>() {{
-			add("a");
-			add("b");
-		}}.iterator();
+		Iterator<String> iterator = new ArrayList<String>() {
+			private static final long serialVersionUID = -4593258366224032110L;
+
+			{
+				add("a");
+				add("b");
+			}
+		}.iterator();
 		ArrayList<String> result = MapUtil.valuesOfKeys(map, iterator);
-		assertEquals(new ArrayList<String>() {{
-			add("1");
-			add("2");
-		}}, result);
+		assertEquals(new ArrayList<String>() {
+			private static final long serialVersionUID = 7218152799308667271L;
+
+			{
+				add("1");
+				add("2");
+			}
+		}, result);
 	}
 
 	@Test
 	public void valuesOfKeysKeysNotInMapReturnsNulls() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("a", "1");
 		map.put("b", "2");
 		map.put("c", "3");
-		Iterator<String> iterator = new ArrayList<String>() {{
-			add("d");
-			add("e");
-		}}.iterator();
+		Iterator<String> iterator = new ArrayList<String>() {
+			private static final long serialVersionUID = -5479427021989481058L;
+
+			{
+				add("d");
+				add("e");
+			}
+		}.iterator();
 		ArrayList<String> result = MapUtil.valuesOfKeys(map, iterator);
-		assertEquals(new ArrayList<String>() {{
-			add(null);
-			add(null);
-		}}, result);
+		assertEquals(new ArrayList<String>() {
+			private static final long serialVersionUID = 4390715387901549136L;
+
+			{
+				add(null);
+				add(null);
+			}
+		}, result);
 	}
 
 	@Test
 	public void valuesOfKeysMixedKeysReturnsMixedValues() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("a", "1");
 		map.put("b", "2");
 		map.put("c", "3");
-		Iterator<String> iterator = new ArrayList<String>() {{
-			add("a");
-			add("d");
-			add("b");
-		}}.iterator();
+		Iterator<String> iterator = new ArrayList<String>() {
+			private static final long serialVersionUID = 8510595063492828968L;
+
+			{
+				add("a");
+				add("d");
+				add("b");
+			}
+		}.iterator();
 		ArrayList<String> result = MapUtil.valuesOfKeys(map, iterator);
-		assertEquals(new ArrayList<String>() {{
-			add("1");
-			add(null);
-			add("2");
-		}}, result);
+		assertEquals(new ArrayList<String>() {
+			private static final long serialVersionUID = 6383576410597048337L;
+			{
+				add("1");
+				add(null);
+				add("2");
+			}
+		}, result);
 	}
 
 	//--------clear
@@ -569,14 +594,14 @@ public class MapUtilTest {
 
 	@Test
 	public void clearEmptyMapNoChange() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		MapUtil.clear(map);
 		assertTrue(map.isEmpty());
 	}
 
 	@Test
 	public void clearNonEmptyMapClearsMap() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("key", "value");
 		MapUtil.clear(map);
 		assertTrue(map.isEmpty());
@@ -601,7 +626,7 @@ public class MapUtilTest {
 
 	@Test
 	public void clearMixedMapsClearsNonEmptyMaps() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("key", "value");
 
 		Map<String, String> emptyMap = new HashMap<>();
@@ -664,14 +689,14 @@ public class MapUtilTest {
 
 	@Test
 	public void removeNullValueEmptyMapReturnsEmptyMap() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		Map<String, String> result = MapUtil.removeNullValue(map);
 		assertEquals(0, result.size());
 	}
 
 	@Test
 	public void removeNullValueNoNullValuesReturnsSameMap() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("key1", "value1");
 		map.put("key2", "value2");
 
@@ -684,7 +709,7 @@ public class MapUtilTest {
 
 	@Test
 	public void removeNullValueWithNullValuesRemovesNullEntries() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("key1", "value1");
 		map.put("key2", null);
 		map.put("key3", "value3");
@@ -699,7 +724,7 @@ public class MapUtilTest {
 
 	@Test
 	public void removeNullValueAllNullValuesReturnsEmptyMap() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("key1", null);
 		map.put("key2", null);
 
@@ -712,7 +737,8 @@ public class MapUtilTest {
 	//------getQuietly
 	@Test
 	public void getQuietlyMapIsNullReturnsDefaultValue() {
-		String result = MapUtil.getQuietly(null, "key1", new TypeReference<String>() {}, "default");
+		String result = MapUtil.getQuietly(null, "key1", new TypeReference<String>() {
+		}, "default");
 		assertEquals("default", result);
 		result = MapUtil.getQuietly(null, "key1", String.class, "default");
 		assertEquals("default", result);
@@ -720,47 +746,52 @@ public class MapUtilTest {
 
 	@Test
 	public void getQuietlyKeyExistsReturnsConvertedValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("key1", "value1");
 		map.put("key2", 123);
-		String result = MapUtil.getQuietly(map, "key1", new TypeReference<String>() {}, "default");
+		String result = MapUtil.getQuietly(map, "key1", new TypeReference<String>() {
+		}, "default");
 		assertEquals("value1", result);
 	}
 
 	@Test
 	public void getQuietlyKeyDoesNotExistReturnsDefaultValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("key1", "value1");
 		map.put("key2", 123);
-		String result = MapUtil.getQuietly(map, "key3", new TypeReference<String>() {}, "default");
+		String result = MapUtil.getQuietly(map, "key3", new TypeReference<String>() {
+		}, "default");
 		assertEquals("default", result);
 	}
 
 	@Test
 	public void getQuietlyConversionFailsReturnsDefaultValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("key1", "value1");
 		map.put("key2", 123);
-		Integer result = MapUtil.getQuietly(map, "key1", new TypeReference<Integer>() {}, 0);
+		Integer result = MapUtil.getQuietly(map, "key1", new TypeReference<Integer>() {
+		}, 0);
 		assertEquals(0, result);
 	}
 
 	@Test
 	public void getQuietlyKeyExistsWithCorrectTypeReturnsValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("key1", "value1");
 		map.put("key2", 123);
-		Integer result = MapUtil.getQuietly(map, "key2", new TypeReference<Integer>() {}, 0);
+		Integer result = MapUtil.getQuietly(map, "key2", new TypeReference<Integer>() {
+		}, 0);
 		assertEquals(123, result);
 	}
 
 	@Test
 	public void getQuietlyKeyExistsWithNullValueReturnsDefaultValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("key1", "value1");
 		map.put("key2", 123);
 		map.put("key3", null);
-		String result = MapUtil.getQuietly(map, "key3", new TypeReference<String>() {}, "default");
+		String result = MapUtil.getQuietly(map, "key3", new TypeReference<String>() {
+		}, "default");
 		assertEquals("default", result);
 	}
 
@@ -771,7 +802,7 @@ public class MapUtilTest {
 
 	@Test
 	public void getKeyExistsReturnsConvertedValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("age", "18");
 		map.put("name", "Hutool");
 		assertEquals("18", MapUtil.get(map, "age", String.class));
@@ -779,7 +810,7 @@ public class MapUtilTest {
 
 	@Test
 	public void getKeyDoesNotExistReturnsDefaultValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("age", "18");
 		map.put("name", "Hutool");
 		assertEquals("default", MapUtil.get(map, "nonexistent", String.class, "default"));
@@ -787,7 +818,7 @@ public class MapUtilTest {
 
 	@Test
 	public void getTypeConversionFailsReturnsDefaultValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("age", "18");
 		map.put("name", "Hutool");
 		assertEquals(18, MapUtil.get(map, "age", Integer.class, 0));
@@ -795,7 +826,7 @@ public class MapUtilTest {
 
 	@Test
 	public void getQuietlyTypeConversionFailsReturnsDefaultValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("age", "18");
 		map.put("name", "Hutool");
 		assertEquals(0, MapUtil.getQuietly(map, "name", Integer.class, 0));
@@ -803,28 +834,32 @@ public class MapUtilTest {
 
 	@Test
 	public void getTypeReferenceReturnsConvertedValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("age", "18");
 		map.put("name", "Hutool");
-		assertEquals("18", MapUtil.get(map, "age", new TypeReference<String>() {}));
+		assertEquals("18", MapUtil.get(map, "age", new TypeReference<String>() {
+		}));
 	}
 
 	@Test
 	public void getTypeReferenceWithDefaultValueReturnsConvertedValue() {
-		Map<String, Object> map= new HashMap<>();
+		Map<String, Object> map = new HashMap<>();
 		map.put("age", "18");
 		map.put("name", "Hutool");
-		assertEquals("18", MapUtil.get(map, "age", new TypeReference<String>() {}, "default"));
+		assertEquals("18", MapUtil.get(map, "age", new TypeReference<String>() {
+		}, "default"));
 	}
 
 	@Test
 	public void getTypeReferenceWithDefaultValueTypeConversionFailsReturnsDefaultValue() {
-		Map<String, String> map= new HashMap<>();
+		Map<String, String> map = new HashMap<>();
 		map.put("age", "18");
 		map.put("name", "Hutool");
-		assertEquals(18, MapUtil.get(map, "age", new TypeReference<Integer>() {}, 0));
+		assertEquals(18, MapUtil.get(map, "age", new TypeReference<Integer>() {
+		}, 0));
 
 		map = null;
-		assertEquals(0, MapUtil.get(map, "age", new TypeReference<Integer>() {}, 0));
+		assertEquals(0, MapUtil.get(map, "age", new TypeReference<Integer>() {
+		}, 0));
 	}
 }
