@@ -77,10 +77,10 @@ public class IdcardUtilTest {
 		final Date date = DateUtil.parse("2017-04-10");
 
 		final int age = IdcardUtil.getAge(ID_18, date);
-		assertEquals(age, 38);
+		assertEquals(38, age);
 
 		final int age2 = IdcardUtil.getAge(ID_15, date);
-		assertEquals(age2, 28);
+		assertEquals(28, age2);
 	}
 
 	@Test
@@ -97,19 +97,19 @@ public class IdcardUtilTest {
 	@Test
 	public void getBirthTest() {
 		final String birth = IdcardUtil.getBirth(ID_18);
-		assertEquals(birth, "19781216");
+		assertEquals("19781216", birth);
 
 		final String birth2 = IdcardUtil.getBirth(ID_15);
-		assertEquals(birth2, "19880730");
+		assertEquals("19880730", birth2);
 	}
 
 	@Test
 	public void getProvinceTest() {
 		final String province = IdcardUtil.getProvince(ID_18);
-		assertEquals(province, "江苏");
+		assertEquals("江苏", province);
 
 		final String province2 = IdcardUtil.getProvince(ID_15);
-		assertEquals(province2, "内蒙古");
+		assertEquals("内蒙古", province2);
 	}
 
 	@Test
