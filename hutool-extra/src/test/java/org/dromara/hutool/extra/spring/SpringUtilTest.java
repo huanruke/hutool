@@ -26,6 +26,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -53,8 +54,6 @@ public class SpringUtilTest {
 		final Demo2 registerBean2 = SpringUtil.getBean("registerBean");
 		Assertions.assertEquals(123, registerBean2.getId());
 		Assertions.assertEquals("222", registerBean2.getName());
-
-
 	}
 
 	/**
@@ -113,6 +112,16 @@ public class SpringUtilTest {
 		assert "dev".equals(activeProfile);
 		assert null == defaultProfile;
 		assert "dev".equals(activeProfile2);
+	}
+
+	@Test
+	void getEnvironmentTest() {
+		ConfigurableEnvironment bean = SpringUtil.getBean(ConfigurableEnvironment.class);
+		Assertions.assertNotNull(bean);
+		bean = SpringUtil.getBean(ConfigurableEnvironment.class, new Object[0]);
+		Assertions.assertNotNull(bean);
+		bean = SpringUtil.getBean(ConfigurableEnvironment.class, (Object[])null);
+		Assertions.assertNotNull(bean);
 	}
 
 	@Data

@@ -90,18 +90,6 @@ public class SpringUtil implements ApplicationContextInitializer<ConfigurableApp
 	//通过name获取 Bean.
 
 	/**
-	 * 通过name获取 Bean
-	 *
-	 * @param <T>  Bean类型
-	 * @param name Bean名称
-	 * @return Bean
-	 */
-	@SuppressWarnings("unchecked")
-	public static <T> T getBean(final String name) {
-		return (T) getBeanFactory().getBean(name);
-	}
-
-	/**
 	 * 通过class获取Bean
 	 *
 	 * @param <T>   Bean类型
@@ -110,6 +98,10 @@ public class SpringUtil implements ApplicationContextInitializer<ConfigurableApp
 	 * @return Bean对象
 	 */
 	public static <T> T getBean(final Class<T> clazz, final Object... args) {
+		final ListableBeanFactory beanFactory = getBeanFactory();
+		if (ArrayUtil.isEmpty(args)) {
+			return beanFactory.getBean(clazz);
+		}
 		return getBeanFactory().getBean(clazz, args);
 	}
 
@@ -130,11 +122,17 @@ public class SpringUtil implements ApplicationContextInitializer<ConfigurableApp
 	 *
 	 * @param name Bean名称
 	 * @param args 创建bean需要的参数属性
+	 * @param <T>  Bean类型
 	 * @return Bean对象
 	 * @since 5.8.34
 	 */
-	public static Object getBean(final String name, final Object... args) {
-		return getBeanFactory().getBean(name, args);
+	@SuppressWarnings("unchecked")
+	public static <T> T getBean(final String name, final Object... args) {
+		final ListableBeanFactory beanFactory = getBeanFactory();
+		if (ArrayUtil.isEmpty(args)) {
+			return (T) beanFactory.getBean(name);
+		}
+		return (T) beanFactory.getBean(name, args);
 	}
 
 	/**
