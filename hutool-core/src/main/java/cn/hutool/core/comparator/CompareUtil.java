@@ -187,4 +187,39 @@ public class CompareUtil {
 		IndexedComparator<U> indexedComparator = new IndexedComparator<>(atEndIfMiss, objs);
 		return (o1, o2) -> indexedComparator.compare(keyExtractor.apply(o1), keyExtractor.apply(o2));
 	}
+
+	/**
+	* 获取 list1 中与 list2 不同的元素
+	* @param <T>        被比较对象类型
+	* @param list1      集合1
+	* @param list2      集合2
+	* @param comparator 比较器
+	* @return java.util.List<T>
+	*/
+	public static <T> List<T> getDiffList(List<T> list1, List<T> list2, Comparator<? super T> comparator) {
+		if (list1 == null || list1.size() == 0) {
+		    return Collections.emptyList();
+		}
+		
+		if (list2 == null || list2.size() == 0) {
+		    return list1;
+		}
+		
+		List<T> diffList = new ArrayList<>();
+		for (T obj1 : list1) {
+		    boolean exist = false;
+		    for (T obj2 : list2) {
+			int res = comparator.compare(obj1, obj2);
+			if (res == 0) {
+			    exist = true;
+			    break;
+			}
+		    }
+		    if (!exist) {
+			diffList.add(obj1);
+		    }
+		}
+		return diffList;
+	}
+	
 }
